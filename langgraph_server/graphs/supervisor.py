@@ -16,6 +16,12 @@ from langgraph_server.agents import RemoteAgent
 
 
 class SupervisorChatGroup:
+    """
+    Crea un grupo de chat supervisado con agentes especializados.
+
+    Esta clase facilita la creación de un grafo que incluye un supervisor
+    responsable de dirigir el flujo de conversación entre múltiples agentes.
+    """
     def __new__(
         self,
         agents: list[Pregel | RemoteAgent],
@@ -39,6 +45,28 @@ class SupervisorChatGroup:
         supervisor_name: str = "supervisor",
         include_agent_name: AgentNameMode | None = None,
     ):
+        """
+        Crea una instancia de un grupo de chat supervisado.
+
+        Args:
+            agents (list[Pregel  |  RemoteAgent]): Lista de agentes que participarán en el chat.
+            model (LanguageModelLike): Modelo de lenguaje a utilizar.
+            tools (list[BaseTool  |  Callable] | ToolNode | None, optional): Lista de herramientas disponibles para los agentes. Defaults to None.
+            prompt (Prompt | None, optional): Prompt para el supervisor. Defaults to None.
+            response_format (Optional[Union[StructuredResponseSchema, tuple[str, StructuredResponseSchema]]], optional): Formato de respuesta estructurada. Defaults to None.
+            parallel_tool_calls (bool, optional): Indica si las llamadas a herramientas pueden ser paralelas. Defaults to False.
+            state_schema (StateSchemaType, optional): Esquema de estado. Defaults to None.
+            config_schema (Type[Any] | None, optional): Esquema de configuración. Defaults to None.
+            output_mode (OutputMode, optional): Modo de salida. Defaults to "last_message".
+            add_handoff_messages (bool, optional): Indica si se deben agregar mensajes de traspaso. Defaults to True.
+            handoff_tool_prefix (Optional[str], optional): Prefijo para las herramientas de traspaso. Defaults to None.
+            add_handoff_back_messages (Optional[bool], optional): Indica si se deben agregar mensajes de retorno de traspaso. Defaults to None.
+            supervisor_name (str, optional): Nombre del supervisor. Defaults to "supervisor".
+            include_agent_name (AgentNameMode | None, optional): Modo de inclusión del nombre del agente. Defaults to None.
+
+        Returns:
+            Any: Una instancia compilada del grupo de chat supervisado.
+        """
         # Paso 1: Generar prompt base
         base_prompt = SupervisorChatGroup.generate_prompt(agents)
 
@@ -75,6 +103,7 @@ class SupervisorChatGroup:
 
     @staticmethod
     def generate_prompt(agents: list[Pregel]) -> Prompt:
+        """Genera un prompt base para el supervisor."""
         descriptions = []
         for agent in agents:
             if hasattr(agent, "info") and callable(agent.info):

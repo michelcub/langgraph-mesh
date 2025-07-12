@@ -5,11 +5,21 @@ from langgraph.types import RunnableConfig, StreamMode, All, Sequence, Any
 import httpx
 from typing import Any, AsyncIterator, Iterator, Sequence
 
-from examples.agents.create_simple_agent import response
-
 
 class RemoteAgent:
+    """
+    Cliente para interactuar con un agente remoto.
+
+    Esta clase permite invocar, transmitir y obtener información de un agente
+    que se ejecuta en un servidor remoto.
+    """
     def __init__(self, path: str):
+        """
+        Inicializa el cliente del agente remoto.
+
+        Args:
+            path (str): La URL base del servidor del agente remoto.
+        """
         self.base_url = path.rstrip("/")
         self.http_client_sync = httpx.Client(timeout=360)
         self.http_client_async = httpx.AsyncClient(timeout=360)
@@ -21,25 +31,45 @@ class RemoteAgent:
         self.tools = []
 
     def _request_sync(self, path: str = "", **kwargs: Any) -> Any:
+        """
+        Realiza una petición síncrona al servidor remoto.
+
+        Args:
+            path (str, optional): La ruta específica del endpoint. Defaults to "".
+            **kwargs (Any): Argumentos adicionales para la petición.
+
+        Returns:
+            Any: La respuesta del servidor decodificada.
+        """
         print(5*"*********** start *************+\n")
         dict_con_objetos = kwargs.get("json", {})
         print(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
-        
+
         data_pickled_string = jsonpickle.encode(dict_con_objetos, unpicklable=False)
-        
+
         print(5*"*********** end *************+\n")
-        
+
         response = self.http_client_sync.post(f"{self.base_url}/{path}", content=data_pickled_string)
         response.raise_for_status()
         return jsonpickle.decode(response.json())
 
     async def _request_async(self, path: str = "", **kwargs: Any) -> Any:
+        """
+        Realiza una petición asíncrona al servidor remoto.
+
+        Args:
+            path (str, optional): La ruta específica del endpoint. Defaults to "".
+            **kwargs (Any): Argumentos adicionales para la petición.
+
+        Returns:
+            Any: La respuesta del servidor decodificada.
+        """
         print(5*"*********** start *************+\n")
         dict_con_objetos = kwargs.get("json", {})
         print(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
-        
+
         data_pickled_string = jsonpickle.encode(dict_con_objetos, unpicklable=False)
-        
+
         print(5*"*********** end *************+\n")
 
         response = await self.http_client_async.post(
@@ -49,7 +79,7 @@ class RemoteAgent:
         )
 
         response.raise_for_status()
-        
+
         # 4. Decodifica la respuesta del servidor, que también viene con jsonpickle
         return jsonpickle.decode(response.text)
 
@@ -65,6 +95,22 @@ class RemoteAgent:
         interrupt_after: All | Sequence[str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
+        """
+        Invoca el agente remoto de forma síncrona.
+
+        Args:
+            input (InputT): La entrada para el agente.
+            config (RunnableConfig | None, optional): Configuración para la ejecución. Defaults to None.
+            stream_mode (StreamMode, optional): Modo de transmisión. Defaults to "values".
+            print_mode (StreamMode | Sequence[StreamMode], optional): Modo de impresión. Defaults to ().
+            output_keys (str | Sequence[str] | None, optional): Claves de salida. Defaults to None.
+            interrupt_before (All | Sequence[str] | None = None, optional): Interrupciones antes de la ejecución. Defaults to None.
+            interrupt_after (All | Sequence[str] | None = None, optional): Interrupciones después de la ejecución. Defaults to None.
+            **kwargs (Any): Argumentos adicionales.
+
+        Returns:
+            dict[str, Any] | Any: La respuesta del agente.
+        """
         return self._request_sync(
             path="invoke",
             json={
@@ -91,6 +137,22 @@ class RemoteAgent:
         interrupt_after: All | Sequence[str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
+        """
+        Invoca el agente remoto de forma asíncrona.
+
+        Args:
+            input (InputT): La entrada para el agente.
+            config (RunnableConfig | None = None, optional): Configuración para la ejecución. Defaults to None.
+            stream_mode (StreamMode = "values", optional): Modo de transmisión. Defaults to "values".
+            print_mode (StreamMode | Sequence[StreamMode] = (), optional): Modo de impresión. Defaults to ().
+            output_keys (str | Sequence[str] | None = None, optional): Claves de salida. Defaults to None.
+            interrupt_before (All | Sequence[str] | None = None, optional): Interrupciones antes de la ejecución. Defaults to None.
+            interrupt_after (All | Sequence[str] | None = None, optional): Interrupciones después de la ejecución. Defaults to None.
+            **kwargs (Any): Argumentos adicionales.
+
+        Returns:
+            dict[str, Any] | Any: La respuesta del agente.
+        """
         return await self._request_async(
             path="ainvoke",
             json={
@@ -119,6 +181,24 @@ class RemoteAgent:
         debug: bool | None = None,
         subgraphs: bool = False,
     ) -> Iterator[dict[str, Any] | Any]:
+        """
+        Transmite la salida del agente remoto de forma síncrona.
+
+        Args:
+            input (InputT): La entrada para el agente.
+            config (RunnableConfig | None = None, optional): Configuración para la ejecución. Defaults to None.
+            stream_mode (StreamMode | Sequence[StreamMode] | None = None, optional): Modo de transmisión. Defaults to None.
+            print_mode (StreamMode | Sequence[StreamMode] = (), optional): Modo de impresión. Defaults to ().
+            output_keys (str | Sequence[str] | None = None, optional): Claves de salida. Defaults to None.
+            interrupt_before (All | Sequence[str] | None = None, optional): Interrupciones antes de la ejecución. Defaults to None.
+            interrupt_after (All | Sequence[str] | None = None, optional): Interrupciones después de la ejecución. Defaults to None.
+            checkpoint_during (bool | None = None, optional): Checkpoint durante la ejecución. Defaults to None.
+            debug (bool | None = None, optional): Modo de depuración. Defaults to None.
+            subgraphs (bool = False, optional): Incluir subgrafos. Defaults to False.
+
+        Yields:
+            Iterator[dict[str, Any] | Any]: Los chunks de la respuesta del agente.
+        """
         payload = {
             "input": input,
             "config": config,
@@ -156,6 +236,24 @@ class RemoteAgent:
         debug: bool | None = None,
         subgraphs: bool = False,
     ) -> AsyncIterator[dict[str, Any] | Any]:
+        """
+        Transmite la salida del agente remoto de forma asíncrona.
+
+        Args:
+            input (InputT): La entrada para el agente.
+            config (RunnableConfig | None = None, optional): Configuración para la ejecución. Defaults to None.
+            stream_mode (StreamMode | Sequence[StreamMode] | None = None, optional): Modo de transmisión. Defaults to None.
+            print_mode (StreamMode | Sequence[StreamMode] = (), optional): Modo de impresión. Defaults to ().
+            output_keys (str | Sequence[str] | None = None, optional): Claves de salida. Defaults to None.
+            interrupt_before (All | Sequence[str] | None = None, optional): Interrupciones antes de la ejecución. Defaults to None.
+            interrupt_after (All | Sequence[str] | None = None, optional): Interrupciones después de la ejecución. Defaults to None.
+            checkpoint_during (bool | None = None, optional): Checkpoint durante la ejecución. Defaults to None.
+            debug (bool | None = None, optional): Modo de depuración. Defaults to None.
+            subgraphs (bool = False, optional): Incluir subgrafos. Defaults to False.
+
+        Yields:
+            AsyncIterator[dict[str, Any] | Any]: Los chunks de la respuesta del agente.
+        """
         payload = {
             "input": input,
             "config": config,
@@ -182,5 +280,11 @@ class RemoteAgent:
                         print(f"Error decoding async stream chunk: {e}")
 
     def info(self):
+        """
+        Obtiene información sobre el agente remoto.
+
+        Returns:
+            dict: Un diccionario con la información del agente.
+        """
         response = self.http_client_sync.get(f"{self.base_url}/info")
         return response.json()

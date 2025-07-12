@@ -27,7 +27,20 @@ class RequestServer(BaseModel):
 
 
 class Server:
+    """
+    Servidor para desplegar agentes de LangGraph dinámicamente.
+
+    Esta clase facilita la creación de un servidor FastAPI que puede registrar
+    y ejecutar agentes de LangGraph con endpoints generados automáticamente.
+    """
     def __init__(self, title: str = "LangGraph Dynamic Server"):
+        """
+        Inicializa el servidor.
+
+        Args:
+            title (str, optional): El título de la aplicación FastAPI.
+                Defaults to "LangGraph Dynamic Server".
+        """
         self.app = FastAPI(title=title)
 
         self.app.add_middleware(
@@ -96,17 +109,17 @@ class Server:
         async def invoke(request: Request):
             raw_body = await request.body()
             payload = jsonpickle.decode(raw_body)
-    
+
             print("kwargs received and decoded:", payload)
-            
+
             response = agent.invoke(payload)
-            print("response", response)            
+            print("response", response)
             return jsonpickle.encode(response)
 
         async def ainvoke(request: InvokeParams):
             raw_body = await request.body()
             payload = jsonpickle.decode(raw_body)
-    
+
             print("kwargs received and decoded:", payload)
             response = await agent.ainvoke(payload)
             print("response", response)
@@ -115,7 +128,7 @@ class Server:
         async def stream(request: StreamParams):
             raw_body = await request.body()
             payload = jsonpickle.decode(raw_body)
-    
+
             print("kwargs received and decoded:", payload)
             return StreamingResponse(
                 content=_event_generator(payload),
@@ -125,7 +138,7 @@ class Server:
         async def astream(request: StreamParams):
             raw_body = await request.body()
             payload = jsonpickle.decode(raw_body)
-    
+
             print("kwargs received and decoded:", payload)
             return StreamingResponse(
                 content=_async_event_generator(payload),
@@ -188,7 +201,7 @@ class Server:
         BOLD = "\033[1m"
 
         # Banner ASCII con diseño atractivo
-        banner = f"""
+        banner = f'''
 {CYAN}╔══════════════════════════════════════════════════════════════════════╗
 ║                                                                      ║
 ║  {BOLD}{MAGENTA}██╗      █████╗ ███╗   ██╗ ██████╗  ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗{RESET}{CYAN}  ║
@@ -201,10 +214,10 @@ class Server:
 ║                    {BOLD}{YELLOW}🚀 S E R V E R   S T A R T I N G 🚀{RESET}{CYAN}                    ║
 ║                                                                      ║
 ╚══════════════════════════════════════════════════════════════════════╝{RESET}
-"""
+'''
 
         # Información del servidor
-        server_info = f"""
+        server_info = f'''
 {GREEN}┌─────────────────────────────────────────────────────────────┐
 │  {BOLD}🌐 Server Information{RESET}{GREEN}                                     │
 ├─────────────────────────────────────────────────────────────┤
@@ -215,7 +228,7 @@ class Server:
 │  ❤️  Health: {BOLD}{BLUE}http://{host}:{port}/health{RESET}{GREEN}                   │
 │  🤖 Agents: {BOLD}{YELLOW}{len(self.agents)} registered{RESET}{GREEN}                              │
 └─────────────────────────────────────────────────────────────┘{RESET}
-"""
+'''
 
         # Imprimir todo
         print(banner)
@@ -223,22 +236,22 @@ class Server:
 
         # Endpoints disponibles si hay agentes
         if self.agents:
-            endpoints_info = f"""
+            endpoints_info = f'''
 {BLUE}┌─────────────────────────────────────────────────────────────┐
 │  {BOLD}🔧 Available Endpoints{RESET}{BLUE}                                   │
-├─────────────────────────────────────────────────────────────┤"""
+├─────────────────────────────────────────────────────────────┤'''
 
             for path, metadata in self.agents.items():
                 agent_name = metadata["name"]
-                endpoints_info += f"""
+                endpoints_info += f'''
 │  {BOLD}{CYAN}{path}{RESET}{BLUE} → {agent_name}                                    │
 │    📤 POST {BOLD}{path}/invoke{RESET}{BLUE}                                │
 │    ℹ️  GET  {BOLD}{path}/info{RESET}{BLUE}                                  │
-│    ❤️  GET  {BOLD}{path}/health{RESET}{BLUE}                                │"""
+│    ❤️  GET  {BOLD}{path}/health{RESET}{BLUE}                                │'''
 
-            endpoints_info += f"""
+            endpoints_info += f'''
 └─────────────────────────────────────────────────────────────┘{RESET}
-"""
+'''
             print(endpoints_info)
 
         # Mensaje final

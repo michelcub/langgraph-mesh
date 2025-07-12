@@ -14,6 +14,12 @@ from langchain_core.language_models import LanguageModelLike
 
 
 class Agent:
+    """
+    Wrapper para crear un agente React.
+
+    Este wrapper simplifica la creación de agentes React al combinar la función `create_react_agent`
+    con metadatos adicionales como descripción y habilidades.
+    """
 
     def __new__(
         self,
@@ -28,6 +34,24 @@ class Agent:
         description: str | None = None,
         skills: List[str] | None = None,
     ):
+        """
+        Crea una instancia de un agente React.
+
+        Args:
+            tools (List[BaseTool]): Lista de herramientas que el agente puede usar.
+            store (BaseStore, optional): Almacén para el estado del agente. Defaults to None.
+            memory (Checkpointer, optional): Checkpointer para la memoria del agente. Defaults to None.
+            name (str, optional): Nombre del agente. Defaults to None.
+            model (LanguageModelLike, optional): Modelo de lenguaje a usar. Defaults to None.
+            prompt (Prompt, optional): Prompt para el agente. Defaults to None.
+            output_schema (StructuredResponseSchema, optional): Esquema de salida estructurado. Defaults to None.
+            state_schema (StateSchemaType, optional): Esquema de estado. Defaults to None.
+            description (str, optional): Descripción del agente. Defaults to None.
+            skills (List[str], optional): Lista de habilidades del agente. Defaults to None.
+
+        Returns:
+            Any: Una instancia compilada del agente React.
+        """
         instance = create_react_agent(
             name=name,
             model=model,
