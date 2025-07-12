@@ -1,17 +1,40 @@
+# Este es el archivo de configuración estándar para proyectos de Python.
+# Define cómo se construye tu paquete y cuáles son sus metadatos.
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "langgraph-mesh"
+name = "langgraph-server"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
-dependencies = [
-    "black>=25.1.0",
-    "fastapi>=0.115.14",
-    "httpx>=0.28.1",
-    "jsonpickle>=4.1.1",
-    "langchain-openai>=0.3.27",
-    "langgraph>=0.5.0",
-    "langgraph-supervisor>=0.0.27",
-    "pydantic>=2.11.7",
-    "uvicorn>=0.35.0",
-    "websockets>=15.0.1",
+authors = [
+  { name="Orestes Michel Lopez Perez", email="oreste.lopez@gmail.com" },
 ]
+description = "Un servidor y cliente para desplegar e interactuar dinámicamente con agentes de LangGraph."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "jsonpickle",
+    "langgraph",
+    "langchain-core",
+    "langgraph-supervisor",
+    "pydantic",
+    "langchain-openai" # Necesario para los ejemplos
+]
+
+[project.urls]
+Homepage = "https://github.com/tu-usuario/langgraph-server" # Reemplaza con la URL de tu repo
+Issues = "https://github.com/tu-usuario/langgraph-server/issues" # Reemplaza con la URL de tu repo

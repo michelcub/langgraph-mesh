@@ -4,6 +4,7 @@ from langgraph.types import RunnableConfig, StreamMode, All, Sequence, Any
 
 import httpx
 from typing import Any, AsyncIterator, Iterator, Sequence
+import logging
 
 
 class RemoteAgent:
@@ -41,14 +42,9 @@ class RemoteAgent:
         Returns:
             Any: La respuesta del servidor decodificada.
         """
-        print(5*"*********** start *************+\n")
         dict_con_objetos = kwargs.get("json", {})
-        print(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
-
+        logging.debug(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
         data_pickled_string = jsonpickle.encode(dict_con_objetos, unpicklable=False)
-
-        print(5*"*********** end *************+\n")
-
         response = self.http_client_sync.post(f"{self.base_url}/{path}", content=data_pickled_string)
         response.raise_for_status()
         return jsonpickle.decode(response.json())
@@ -64,14 +60,9 @@ class RemoteAgent:
         Returns:
             Any: La respuesta del servidor decodificada.
         """
-        print(5*"*********** start *************+\n")
         dict_con_objetos = kwargs.get("json", {})
-        print(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
-
+        logging.debug(f"Requesting {self.base_url}/{path} with objects: {dict_con_objetos}")
         data_pickled_string = jsonpickle.encode(dict_con_objetos, unpicklable=False)
-
-        print(5*"*********** end *************+\n")
-
         response = await self.http_client_async.post(
             f"{self.base_url}/{path}",
             content=data_pickled_string,
@@ -80,7 +71,6 @@ class RemoteAgent:
 
         response.raise_for_status()
 
-        # 4. Decodifica la respuesta del servidor, que también viene con jsonpickle
         return jsonpickle.decode(response.text)
 
     def invoke(
@@ -211,8 +201,9 @@ class RemoteAgent:
             "debug": debug,
             "subgraphs": subgraphs,
         }
+        data_pickled_string = jsonpickle.encode(payload, unpicklable=False)
         with self.http_client_sync.stream(
-            "POST", f"{self.base_url}/stream", json=payload
+            "POST", f"{self.base_url}/stream", content=data_pickled_string
         ) as response:
             response.raise_for_status()
             for line in response.iter_lines():
@@ -220,7 +211,7 @@ class RemoteAgent:
                     try:
                         yield jsonpickle.decode(line)
                     except Exception as e:
-                        print(f"Error decoding stream chunk: {e}")
+                        logging.error(f"Error decoding stream chunk: {e}")
 
     async def astream(
         self,
@@ -266,10 +257,11 @@ class RemoteAgent:
             "debug": debug,
             "subgraphs": subgraphs,
         }
+        data_pickled_string = jsonpickle.encode(payload, unpicklable=False)
         async with self.http_client_async.stream(
             "POST",
             f"{self.base_url}/astream",
-            json=payload,
+            content=data_pickled_string,
         ) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
@@ -277,7 +269,7 @@ class RemoteAgent:
                     try:
                         yield jsonpickle.decode(line)
                     except Exception as e:
-                        print(f"Error decoding async stream chunk: {e}")
+                        logging.error(f"Error decoding async stream chunk: {e}")
 
     def info(self):
         """

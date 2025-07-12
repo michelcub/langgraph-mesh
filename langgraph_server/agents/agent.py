@@ -79,8 +79,8 @@ class Agent:
                 "description": getattr(instance, "description", None),
                 "skills": getattr(instance, "skills", []),
                 "tools": [
-                    {"name": tool.name, "description": tool.description}
-                    for tool in getattr(instance, "tools", [])
+                    {"name": t.name, "description": t.description}
+                    for t in tools
                 ],
             }
 
